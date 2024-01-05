@@ -11,10 +11,16 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/indigowar/delivery/internal/config"
+	"github.com/indigowar/delivery/pkg/postgres"
 )
 
 // Run(*config.Config) - is the application's main code
 func Run(cfg *config.Config) {
+	_, err := postgres.CreateConnection(cfg.Postgres.Host, cfg.Postgres.Port, cfg.Postgres.Db, cfg.Postgres.User, cfg.Postgres.Password)
+	if err != nil {
+		log.Fatalf("failed to connect to postgres: %s", err.Error())
+	}
+
 	router := echo.New()
 
 	router.GET("/", func(c echo.Context) error {

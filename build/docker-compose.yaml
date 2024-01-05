@@ -1,0 +1,33 @@
+version: "3"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: ${POSTGRES_HOST}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_SYSTEM_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_SYSTEM_PWD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - ../cmd/db/:/docker-entrypoint-initdb.d/:Z
+      - ../.volumes/pgdata:/var/lib/postgresql/data:Z
+
+  delivery:
+    build:
+      context: ./..
+      dockerfile: ./build/app.dockerfile
+    depends_on:
+      - postgres
+    ports:
+      - "${SYSTEM_PORT}:3000"
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_NAME: ${POSTGRES_DB}
+
+      POSTGRES_USER: ${POSTGRES_SYSTEM_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_SYSTEM_PWD}
+
