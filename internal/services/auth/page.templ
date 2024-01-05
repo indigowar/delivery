@@ -1,0 +1,62 @@
+package auth
+
+import "github.com/indigowar/delivery/pkg/templates/page"
+import "github.com/indigowar/delivery/pkg/templates/form"
+
+templ loginPage(handler string) {
+	@page.Wrapper(page.Header("Login")) {
+		@form.Form(loginFormOpts(handler)) {
+			@form.TextField(phoneOpts())
+			@form.TextField(passwordOpts())
+		}
+	}
+}
+
+templ registerPage(handler string) {
+	@page.Wrapper(page.Header("Register")) {
+		@form.Form(registerFormOpts(handler)) {
+			@form.TextField(phoneOpts())
+			@form.TextField(passwordOpts())
+		}
+	}
+}
+
+func registerFormOpts(handler string) form.FormOpts {
+	return form.FormOpts{
+		Label:      "Register",
+		Handler:    handler,
+		Id:         "register__form",
+		ButtonText: "Register",
+	}
+}
+
+func loginFormOpts(handler string) form.FormOpts {
+	return form.FormOpts{
+		Label:      "LogIn",
+		Handler:    handler,
+		Id:         "login__form",
+		ButtonText: "Log In",
+	}
+}
+
+func phoneOpts() form.TextFieldOpts {
+	return form.TextFieldOpts{
+		Label:       "Phone Number:",
+		Type:        "tel",
+		Placeholder: "Enter your phone number...",
+		Id:          "phone",
+		Name:        "phone",
+		Required:    true,
+	}
+}
+
+func passwordOpts() form.TextFieldOpts {
+	return form.TextFieldOpts{
+		Label:       "Password:",
+		Type:        "password",
+		Placeholder: "Enter your password...",
+		Id:          "password",
+		Name:        "password",
+		Required:    true,
+	}
+}

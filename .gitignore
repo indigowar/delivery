@@ -21,3 +21,5 @@ vendor/
 go.work
 
 .volumes/
+
+*_templ.go

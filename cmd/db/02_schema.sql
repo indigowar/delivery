@@ -1,0 +1,6 @@
+
+CREATE TABLE IF NOT EXISTS accounts(
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v1(),
+    phone VARCHAR(15) UNIQUE NOT NULL,
+    password VARCHAR(1024) NOT NULL
+);

@@ -8,24 +8,30 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/alexedwards/scs/v2"
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
+	session "github.com/spazzymoto/echo-scs-session"
 
 	"github.com/indigowar/delivery/internal/config"
+	repository "github.com/indigowar/delivery/internal/repository/postgres"
+	"github.com/indigowar/delivery/internal/services/auth"
 	"github.com/indigowar/delivery/pkg/postgres"
 )
 
 // Run(*config.Config) - is the application's main code
 func Run(cfg *config.Config) {
-	_, err := postgres.CreateConnection(cfg.Postgres.Host, cfg.Postgres.Port, cfg.Postgres.Db, cfg.Postgres.User, cfg.Postgres.Password)
+	postgresConnection, err := postgres.CreateConnection(cfg.Postgres.Host, cfg.Postgres.Port, cfg.Postgres.Db, cfg.Postgres.User, cfg.Postgres.Password)
 	if err != nil {
 		log.Fatalf("failed to connect to postgres: %s", err.Error())
 	}
 
+	sessionManager := scs.New()
+	sessionManager.Lifetime = 24 * time.Hour
+
 	router := echo.New()
 
-	router.GET("/", func(c echo.Context) error {
-		return c.HTML(http.StatusOK, "<h1>It works</h1>")
-	})
+	setupRoutes(router, sessionManager, postgresConnection)
 
 	server := &http.Server{
 		Addr:    ":3000",
@@ -51,4 +57,31 @@ func Run(cfg *config.Config) {
 	}
 
 	log.Println("Graceful shutdown has ended")
+}
+
+func setupRoutes(r *echo.Echo, sm *scs.SessionManager, connection *sqlx.DB) {
+	_ = repository.NewGetAccountByIDUseCase(connection)
+	getAccountByPhone := repository.NewGetAccountByPhoneUseCase(connection)
+	createAccount := repository.NewCreateAccountUseCase(connection)
+
+	// services
+	authService := auth.NewService(getAccountByPhone, createAccount)
+
+	r.Use(session.LoadAndSave(sm))
+
+	r.GET("/", func(c echo.Context) error {
+		return c.HTML(http.StatusOK, "<h1>It works</h1>")
+	})
+
+	// auth
+
+	authHandler := auth.NewHandler(authService, sm)
+	r.GET("/login", authHandler.ServeLoginPage("/login"))
+	r.POST("/login", authHandler.HandleLoginRequest())
+
+	r.GET("/register", authHandler.ServeRegistrationPage("/register"))
+	r.POST("/register", authHandler.HandleRegisterRequest())
+
+	// the other
+
 }
