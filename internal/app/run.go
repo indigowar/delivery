@@ -16,6 +16,7 @@ import (
 	"github.com/indigowar/delivery/internal/config"
 	repository "github.com/indigowar/delivery/internal/repository/postgres"
 	"github.com/indigowar/delivery/internal/services/auth"
+	"github.com/indigowar/delivery/pkg/middleware"
 	"github.com/indigowar/delivery/pkg/postgres"
 )
 
@@ -66,6 +67,7 @@ func setupRoutes(r *echo.Echo, sm *scs.SessionManager, connection *sqlx.DB) {
 
 	// services
 	authService := auth.NewService(getAccountByPhone, createAccount)
+	authHandler := auth.NewHandler(authService, sm)
 
 	r.Use(session.LoadAndSave(sm))
 
@@ -75,12 +77,13 @@ func setupRoutes(r *echo.Echo, sm *scs.SessionManager, connection *sqlx.DB) {
 
 	// auth
 
-	authHandler := auth.NewHandler(authService, sm)
-	r.GET("/login", authHandler.ServeLoginPage("/login"))
-	r.POST("/login", authHandler.HandleLoginRequest())
+	loginGroup := r.Group("/login", middleware.NotLoggedInMiddleware(sm))
+	loginGroup.GET("", authHandler.ServeLoginPage("/login"))
+	loginGroup.POST("", authHandler.HandleLoginRequest())
 
-	r.GET("/register", authHandler.ServeRegistrationPage("/register"))
-	r.POST("/register", authHandler.HandleRegisterRequest())
+	registerGroup := r.Group("/register", middleware.NotLoggedInMiddleware(sm))
+	registerGroup.GET("", authHandler.ServeRegistrationPage("/register"))
+	registerGroup.POST("", authHandler.HandleRegisterRequest())
 
 	// the other
 
