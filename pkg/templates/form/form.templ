@@ -1,5 +1,7 @@
 package form
 
+import "fmt"
+
 type FormOpts struct {
 	Label      string
 	Handler    string
@@ -12,20 +14,20 @@ type FormOpts struct {
 templ Form(opts FormOpts) {
 	<div class={ "container", "is-max-desktop", "mt-6" }>
 		<form
- 			id={ opts.Id[1:] }
- 			class={ "box" }
- 			hx-post={ opts.Handler }
- 			if opts.Target == "" {
-				hx-target={ opts.Id }
+			id={ opts.Id }
+			class={ "box" }
+			hx-post={ opts.Handler }
+			if opts.Target == "" {
+				hx-target={ fmt.Sprintf("#%s", opts.Id) }
 			} else {
 				hx-target={ opts.Target }
 			}
- 			if opts.Swap == "" {
+			if opts.Swap == "" {
 				hx-swap={ "outerHTML" }
 			} else {
 				hx-swap={ opts.Swap }
 			}
- 			hx-swap={ opts.Swap }
+			hx-swap={ opts.Swap }
 		>
 			<h1 class={ "title", "has-text-centered" }>{ opts.Label }</h1>
 			{ children... }
