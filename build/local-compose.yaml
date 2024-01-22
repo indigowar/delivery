@@ -1,34 +1,119 @@
 version: '3'
 
 services:
-  traefik_proxy:
+  traefik:
     container_name: 'traefik'
     image: traefik:v2.5
     privileged: true
+    networks:
+      - proxy-network 
     command:
+      - '--log.level=WARNING'
       - '--api.insecure=true'
       - '--providers.docker=true'
       - '--providers.docker.exposedbydefault=false'
+      - '--providers.docker.network=proxy-network'
     ports:
       - '80:80'
       - '8080:8080'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+
   accounts_service:
     container_name: 'accounts'
     build:
       context: ./..
       dockerfile: ./build/accounts.dockerfile
+    networks:
+      - proxy-network
     labels:
       - 'traefik.enable=true'
-      - 'traefik.http.routers.accounts.rule=Host(`127.0.0.1`) && Path(`/accounts`)'
+      - 'traefik.http.routers.accounts.rule=Host(`accounts.localhost`)'
       - 'traefik.http.services.accounts.loadbalancer.server.port=80'
   auth_service:
     container_name: 'auth'
     build:
       context: ./..
       dockerfile: ./build/auth.dockerfile
+    networks:
+      - proxy-network
     labels:
       - 'traefik.enable=true'
-      - 'traefik.http.routers.auth.rule=Host(`127.0.0.1`) && Path(`/auth`)'
-      - 'traefik.http.services.accounts.loadbalancer.server.port=80'
+      - 'traefik.http.routers.auth.rule=Host(`auth.localhost`)'
+      - 'traefik.http.services.auth.loadbalancer.server.port=80'
+
+
+networks:
+  proxy-network:
+    name: proxy-network
+
+#   # ACCOUNTS SERVICE 
+#   
+#   accounts_service:
+#     container_name: 'accounts'
+#     build:
+#       context: ./..
+#       dockerfile: ./build/accounts.dockerfile
+#     # depends_on:
+#     #   - accounts_database
+#     networks:
+#       - accounts_network
+#       - proxy_network
+#     environment:
+#       POSTGRES_DB: accounts
+#       POSTGRES_USER: ${ACCOUNTS_DATABASE_USER}
+#       POSTGRES_PASSWORD: ${ACCOUNTS_DATABASE_PASSWORD}
+#       POSTGRES_HOST: 'accounts_db'
+#       POSTGRES_PORT: 5432
+#     labels:
+#       - 'traefik.enable=true'
+#       - 'traefik.http.routers.accounts.rule=Host(`accounts.localhost`)'
+#       # - 'traefik.http.services.accounts.loadbalancer.server.port=80'
+#
+#   # accounts_database:
+#   #   container_name: 'accounts_db'
+#   #   image: postgres:15-alpine
+#   #   ports:
+#   #     - '5432:5432'
+#   #   environment:
+#   #     POSTGRES_DB: accounts
+#   #     POSTGRES_USER: ${ACCOUNTS_DATABASE_USER}
+#   #     POSTGRES_PASSWORD: ${ACCOUNTS_DATABASE_PASSWORD}
+#   #   networks:
+#   #     - accounts_network
+#   #   volumes:
+#   #     - .volumes/accounts_database:/var/lib/postgresql/data
+#
+#
+#   # AUTH SERVICE
+#
+#   auth_service:
+#     container_name: 'auth'
+#     build:
+#       context: ./..
+#       dockerfile: ./build/auth.dockerfile
+#     # depends_on:
+#     #   - redis_session_storage
+#     networks:
+#       - auth_network
+#       - proxy_network
+#     labels:
+#       - 'traefik.enable=true'
+#       - 'traefik.http.routers.auth.rule=Host(`auth.localhost`)'
+#       - 'traefik.http.services.auth.loadbalancer.server.port=80'
+#
+#
+#   # redis_session_storage:
+#   #   container_name: 'session_storage'
+#   #   image: redis:7-alpine
+#   #   ports:
+#   #     - '6379:6379'
+#   #   networks:
+#   #     - auth_network
+#   #   volumes:
+#   #     - .volumes/redis_session_storage:/data
+#
+# networks:
+#   proxy_network:
+#   accounts_network:
+#   auth_network:
