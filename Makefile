@@ -1,3 +1,3 @@
 
 up:
-	docker-compose -f build/local-compose.yaml up --build --remove-orphans
+	docker-compose -f build/local-compose.yaml --env-file .env up --build --remove-orphans
