@@ -1,11 +1,17 @@
 package main
 
-import "net/http"
+import (
+	"log"
+
+	"github.com/indigowar/delivery/internal/auth/app"
+	"github.com/indigowar/delivery/internal/auth/config"
+)
 
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write([]byte("Hello from AUTH service"))
-	})
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatalf("Auth service has invalid configuration: %s", err.Error())
+	}
 
-	_ = http.ListenAndServe(":80", nil)
+	app.Run(cfg)
 }
