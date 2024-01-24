@@ -17,8 +17,6 @@ const (
 	StorageErrroTypeOther
 )
 
-//go:generate moq -out account_storage_test.go . AccountStorage
-
 // AccountStorage - interface to access the accounts in storage
 type AccountStorage interface {
 	Get(ctx context.Context, id uuid.UUID) (*domain.Account, error)
