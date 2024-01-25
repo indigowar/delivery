@@ -1,16 +1,13 @@
 package main
 
 import (
-	"log"
-
-	"github.com/indigowar/delivery/internal/accounts/app"
-	"github.com/indigowar/delivery/internal/accounts/config"
+	"net/http"
 )
 
 func main() {
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		log.Fatalf("Accounts service has invalid configuration: %s", err.Error())
-	}
-	app.Run(cfg)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte("ACCOUNTS SERVICE"))
+	})
+
+	_ = http.ListenAndServe(":80", nil)
 }
