@@ -51,7 +51,7 @@ func (a *Account) Phone() string {
 }
 
 func (a *Account) SetPhone(value string) error {
-	if err := a.ValidatePhoneNumberValue(value); err != nil {
+	if err := ValidatePhoneNumberValue(value); err != nil {
 		return err
 	}
 
@@ -61,7 +61,7 @@ func (a *Account) SetPhone(value string) error {
 }
 
 func (a *Account) SetPassword(value string) error {
-	if !a.ValidatePasswordValue(value) {
+	if !ValidatePasswordValue(value) {
 		return ErrProvidedDataIsInvalid
 	}
 
@@ -154,7 +154,7 @@ func (a *Account) SetProfileImageUrl(link *url.URL) error {
 	return nil
 }
 
-func (Account) ValidatePhoneNumberValue(value string) error {
+func ValidatePhoneNumberValue(value string) error {
 	pattern := regexp.MustCompile(`^\d{1,15}$`)
 
 	if !pattern.MatchString(value) {
@@ -163,7 +163,7 @@ func (Account) ValidatePhoneNumberValue(value string) error {
 	return nil
 }
 
-func (Account) ValidatePasswordValue(password string) bool {
+func ValidatePasswordValue(password string) bool {
 	conditions := 0
 
 	hasLower := regexp.MustCompile(`[a-z]`).MatchString
