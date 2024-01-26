@@ -43,3 +43,8 @@ type ProfileUpdater interface {
 	UpdateSurname(ctx context.Context, id uuid.UUID, surname string) error
 	LoadProfileImage(ctx context.Context, id uuid.UUID, image os.File) error
 }
+
+// CredentialsValidator - is an interface to the account service, that is used to validate credentials
+type CredentialsValidator interface {
+	ValidateCredentials(ctx context.Context, phone string, password string) error
+}
