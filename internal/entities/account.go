@@ -8,6 +8,7 @@ import (
 	"regexp"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -68,6 +69,10 @@ func (a *Account) SetPassword(value string) error {
 	a.password = value
 
 	return nil
+}
+
+func (a *Account) ValidatePassword(value string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(a.password), []byte(value)) == nil
 }
 
 func (a *Account) HasEmail() bool {
