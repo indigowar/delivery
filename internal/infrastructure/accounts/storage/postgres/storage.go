@@ -8,6 +8,7 @@ import (
 
 	"github.com/indigowar/delivery/internal/entities"
 	"github.com/indigowar/delivery/internal/usecases/accounts"
+	"github.com/indigowar/delivery/pkg/postgres"
 )
 
 type storage struct {
@@ -39,17 +40,13 @@ func (s *storage) Update(ctx context.Context, account *entities.Account) error {
 	panic("unimplemented")
 }
 
-func NewStorage(host string, port string, user string, password string, db string) accounts.Storage {
-	panic("unimplemented")
-	// todo: implement
+func NewStorage(host string, port string, user string, password string, db string) (accounts.Storage, error) {
+	con, err := postgres.Connect(host, port, user, password, db)
+	if err != nil {
+		return nil, err
+	}
 
-	// - make a connection to db
-	// - execute migrations
-	// - return a storage implementation
-}
-
-func newStorage(con *pgx.Conn) accounts.Storage {
 	return &storage{
 		con: con,
-	}
+	}, nil
 }

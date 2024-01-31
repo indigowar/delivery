@@ -27,6 +27,8 @@ services:
     networks:
       - proxy-network
       - accounts-network
+    depends_on:
+      - accounts_database
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.accounts.rule=Host(`accounts.localhost`)'
