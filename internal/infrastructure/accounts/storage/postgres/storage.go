@@ -4,49 +4,56 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
+	"gorm.io/gorm"
 
 	"github.com/indigowar/delivery/internal/entities"
-	"github.com/indigowar/delivery/internal/usecases/accounts"
 	"github.com/indigowar/delivery/pkg/postgres"
 )
 
-type storage struct {
-	con *pgx.Conn
+type Storage struct {
+	db *gorm.DB
 }
 
-// GetByID - implements Storage
-func (s *storage) GetByID(ctx context.Context, id uuid.UUID) (*entities.Account, error) {
-	panic("unimplemented")
-}
-
-// GetByPhone - implements Storage
-func (s *storage) GetByPhone(ctx context.Context, phone string) (*entities.Account, error) {
-	panic("unimplemented")
-}
-
-// Add - implements Storage
-func (s *storage) Add(ctx context.Context, account *entities.Account) (*entities.Account, error) {
-	panic("unimplemented")
-}
-
-// Delete - implements Storage
-func (s *storage) Delete(ctx context.Context, id uuid.UUID) error {
-	panic("unimplemented")
-}
-
-// Update - implements Storage
-func (s *storage) Update(ctx context.Context, account *entities.Account) error {
-	panic("unimplemented")
-}
-
-func NewStorage(host string, port string, user string, password string, db string) (accounts.Storage, error) {
-	con, err := postgres.Connect(host, port, user, password, db)
+func NewStorage(host, port, user, password, dbName string) (*Storage, error) {
+	db, err := postgres.Connect(host, port, user, password, dbName)
 	if err != nil {
 		return nil, err
 	}
 
-	return &storage{
-		con: con,
+	return &Storage{
+		db: db,
 	}, nil
+}
+
+// GetByID - implements Storage
+func (s *Storage) GetByID(ctx context.Context, id uuid.UUID) (*entities.Account, error) {
+	panic("unimplemented")
+}
+
+// GetByPhone - implements Storage
+func (s *Storage) GetByPhone(ctx context.Context, phone string) (*entities.Account, error) {
+	panic("unimplemented")
+}
+
+// Add - implements Storage
+func (s *Storage) Add(ctx context.Context, account *entities.Account) (*entities.Account, error) {
+	panic("unimplemented")
+}
+
+// Delete - implements Storage
+func (s *Storage) Delete(ctx context.Context, id uuid.UUID) error {
+	panic("unimplemented")
+}
+
+// Update - implements Storage
+func (s *Storage) Update(ctx context.Context, account *entities.Account) error {
+	panic("unimplemented")
+}
+
+func (s *Storage) Close() error {
+	db, err := s.db.DB()
+	if err != nil {
+		return err
+	}
+	return db.Close()
 }
