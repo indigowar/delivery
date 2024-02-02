@@ -20,6 +20,8 @@ func NewStorage(host, port, user, password, dbName string) (*Storage, error) {
 		return nil, err
 	}
 
+	db.AutoMigrate(&account{})
+
 	return &Storage{
 		db: db,
 	}, nil

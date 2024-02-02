@@ -43,6 +43,18 @@ func NewAccount(phone string, password string) (*Account, error) {
 	return a, nil
 }
 
+func NewAccountWith(id uuid.UUID, phone string, password string, email *mail.Address, firstName *string, surname *string, image *url.URL) *Account {
+	return &Account{
+		id:              id,
+		phone:           phone,
+		password:        password,
+		email:           email,
+		firstName:       firstName,
+		surname:         surname,
+		profileImageUrl: image,
+	}
+}
+
 func (a *Account) ID() uuid.UUID {
 	return a.id
 }
@@ -66,9 +78,18 @@ func (a *Account) SetPassword(value string) error {
 		return ErrProvidedDataIsInvalid
 	}
 
-	a.password = value
+	hashed, err := bcrypt.GenerateFromPassword([]byte(value), 12)
+	if err != nil {
+		return err
+	}
+
+	a.password = string(hashed)
 
 	return nil
+}
+
+func (a *Account) Password() string {
+	return a.password
 }
 
 func (a *Account) ValidatePassword(value string) bool {
@@ -111,6 +132,14 @@ func (a *Account) Name() string {
 	}
 
 	return name
+}
+
+func (a *Account) FirstName() *string {
+	return a.firstName
+}
+
+func (a *Account) Surname() *string {
+	return a.surname
 }
 
 func (a *Account) SetFirstName(value string) error {
