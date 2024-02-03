@@ -1,0 +1,13 @@
+{
+    "Servers": {
+        "Accounts DB": {
+            "Name": "AccountsDB",
+            "Group": "Server Group 1",
+            "Username": "${ACCOUNT_DB_USER_NAME}",
+            "Host": "${ACCOUNT_DB_HOST}",
+            "Port": "${ACCOUNT_DB_PORT}",
+            "SSLMode": "prefer",
+            "MaintenanceDB": "postgres"
+        }
+    }
+}
