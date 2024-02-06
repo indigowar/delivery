@@ -61,12 +61,14 @@ services:
       dockerfile: ./build/auth.dockerfile
     networks:
       - proxy-network
+      - auth-network
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.auth.rule=Host(`auth.localhost`)'
       - 'traefik.http.services.auth.loadbalancer.server.port=80'
     environment:
       REDIS_PASSWORD: ${AUTH_SESSION_STORAGE_REDIS_PASSWORD}
+      REDIS_HOST: 'auth_session_storage'
       REDIS_PORT: 6379
       
   auth_session_storage:
