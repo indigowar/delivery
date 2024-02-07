@@ -12,8 +12,8 @@ import (
 //go:generate moq -out session_storage_moq_test.go . SessionStorage
 
 var (
-	StorageErrSessionNotFound      = errors.New("session is not found")
-	StorageErrSessionAlreadyExists = errors.New("session is already exists")
+	ErrSessionNotFoundInStorage = errors.New("session is not found")
+	ErrSessionAlreadyInStorage  = errors.New("session is already exists")
 )
 
 type SessionStorage interface {

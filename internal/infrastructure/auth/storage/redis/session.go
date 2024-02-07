@@ -65,11 +65,11 @@ func (s session) Save(ctx context.Context, client *redis.Client) error {
 		}
 
 		if err := p.SetNX(ctx, s.AccountID.String(), s.ID.String(), ttl).Err(); err != nil {
-			return auth.StorageErrSessionAlreadyExists
+			return auth.ErrSessionNotFoundInStorage
 		}
 
 		if err := p.SetNX(ctx, s.Token, s.ID.String(), ttl).Err(); err != nil {
-			return auth.StorageErrSessionAlreadyExists
+			return auth.ErrSessionAlreadyExists
 		}
 
 		return nil
@@ -81,7 +81,7 @@ func (s session) Save(ctx context.Context, client *redis.Client) error {
 func (s session) Delete(ctx context.Context, client *redis.Client) error {
 	_, err := client.TxPipelined(ctx, func(p redis.Pipeliner) error {
 		if err := p.Del(ctx, s.ID.String(), s.AccountID.String(), s.Token); err != nil {
-			return auth.StorageErrSessionNotFound
+			return auth.ErrSessionNotFoundInStorage
 		}
 
 		return nil
@@ -106,11 +106,11 @@ func (s *session) Update(ctx context.Context, client *redis.Client, newEntity *e
 		}
 
 		if err := p.Expire(ctx, s.AccountID.String(), ttl).Err(); err != nil {
-			return auth.StorageErrSessionNotFound
+			return auth.ErrSessionNotFoundInStorage
 		}
 
 		if err := p.Del(ctx, s.Token).Err(); err != nil {
-			return auth.StorageErrSessionNotFound
+			return auth.ErrSessionNotFoundInStorage
 		}
 
 		if err := p.SetNX(ctx, string(newData.Token), s.ID.String(), ttl).Err(); err != nil {
@@ -132,7 +132,7 @@ func (s *session) Update(ctx context.Context, client *redis.Client, newEntity *e
 func getByAccountID(ctx context.Context, client *redis.Client, accountId uuid.UUID) (session, error) {
 	indexResult := client.Get(ctx, accountId.String())
 	if err := indexResult.Err(); err != nil {
-		return session{}, fmt.Errorf("%w: %w", auth.StorageErrSessionNotFound, err)
+		return session{}, fmt.Errorf("%w: %w", auth.ErrSessionNotFoundInStorage, err)
 	}
 
 	sessionId := indexResult.Val()
@@ -143,7 +143,7 @@ func getByAccountID(ctx context.Context, client *redis.Client, accountId uuid.UU
 func getByToken(ctx context.Context, client *redis.Client, token string) (session, error) {
 	indexResult := client.Get(ctx, token)
 	if err := indexResult.Err(); err != nil {
-		return session{}, fmt.Errorf("%w:%w", auth.StorageErrSessionNotFound, err)
+		return session{}, fmt.Errorf("%w:%w", auth.ErrSessionNotFoundInStorage, err)
 	}
 
 	sessionId := indexResult.Val()
@@ -154,7 +154,7 @@ func getByToken(ctx context.Context, client *redis.Client, token string) (sessio
 func getByID(ctx context.Context, client *redis.Client, id string) (session, error) {
 	sessionResult := client.Get(ctx, id)
 	if err := sessionResult.Err(); err != nil {
-		return session{}, fmt.Errorf("%w: %w", auth.StorageErrSessionNotFound, err)
+		return session{}, fmt.Errorf("%w: %w", auth.ErrSessionNotFoundInStorage, err)
 	}
 
 	return fromBinary([]byte(sessionResult.Val()))
