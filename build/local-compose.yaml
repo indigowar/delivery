@@ -70,6 +70,10 @@ services:
       REDIS_PASSWORD: ${AUTH_SESSION_STORAGE_REDIS_PASSWORD}
       REDIS_HOST: 'auth_session_storage'
       REDIS_PORT: 6379
+      AUTH_CREDENTIALS_VALIDATOR_HOST: 'accounts.localhost'
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_SESSION_TTL: ${AUTH_SESSION_TTL_IN_HOURS}
+      AUTH_ACCESS_TTL: ${AUTH_ACCESS_TTL_IN_MINS}
       
   auth_session_storage:
     container_name: 'auth_session_storage'

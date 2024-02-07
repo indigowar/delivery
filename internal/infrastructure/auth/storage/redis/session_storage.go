@@ -7,6 +7,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"github.com/indigowar/delivery/internal/entities"
+	connector "github.com/indigowar/delivery/pkg/redis"
 )
 
 type Storage struct {
@@ -69,8 +70,13 @@ func (s *Storage) Close() error {
 	return s.client.Close()
 }
 
-func NewStorage(client *redis.Client) *Storage {
+func NewStorage(host string, port string, password string) (*Storage, error) {
+	client, err := connector.ConnectToRedis(host, port, password)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Storage{
 		client: client,
-	}
+	}, nil
 }
