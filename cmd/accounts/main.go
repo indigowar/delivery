@@ -14,6 +14,13 @@ import (
 )
 
 func main() {
+
+	// added due to errors, when database container is started,
+	// but db isn't initialized.
+	//
+	// Without it there is possbillity that service will not start.
+	time.Sleep(1 * time.Second)
+
 	storage, err := createPostgresStorage()
 	if err != nil {
 		log.Fatal(err)
