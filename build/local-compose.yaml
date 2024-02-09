@@ -40,7 +40,7 @@ services:
       POSTGRES_PASSWORD: ${ACCOUNTS_POSTGRES_PASSWORD}
       POSTGRES_PORT: 5432
       POSTGRES_HOST: 'accounts_database'
-      
+     
       MINIO_USER: ${MINIO_USER}
       MINIO_PASSWORD: ${MINIO_PASSWORD}
       MINIO_HOST: 'image_store'
@@ -118,11 +118,16 @@ services:
     volumes:
       - ../.volumes/image_storage:/data
     networks: 
-      - accounts-network
+      - proxy-network
     environment:
       MINIO_ROOT_USER: ${MINIO_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD}
+      MINIO_BROWSER: 'on'
     command: server --console-address ":9001" /data
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.minio.rule=Host(`minio.localhost`)'
+      - 'traefik.http.services.minio.loadbalancer.server.port=9001'
 
 networks:
   proxy-network:

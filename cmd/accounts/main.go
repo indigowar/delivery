@@ -2,19 +2,21 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"time"
 
 	"github.com/indigowar/delivery/internal/infrastructure/accounts/delivery"
 	"github.com/indigowar/delivery/internal/infrastructure/accounts/delivery/rest"
+	"github.com/indigowar/delivery/internal/infrastructure/accounts/image_storage/minio"
 	"github.com/indigowar/delivery/internal/infrastructure/accounts/storage/postgres"
 	"github.com/indigowar/delivery/internal/usecases/accounts"
 )
 
 func main() {
-
 	// added due to errors, when database container is started,
 	// but db isn't initialized.
 	//
@@ -27,10 +29,15 @@ func main() {
 	}
 	defer storage.Close()
 
+	imageStorage, err := createMinioImageStorage()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	finder := accounts.NewFinder(storage)
 	registrator := accounts.NewRegistrator(storage)
 	credentialsValidator := accounts.NewCredentialsValidator(storage)
-	profileUpdater := accounts.NewProfileUpdater(storage, nil)
+	profileUpdater := accounts.NewProfileUpdater(storage, imageStorage)
 
 	var delivery delivery.Delivery = rest.NewDelivery(80)
 
@@ -68,4 +75,16 @@ func createPostgresStorage() (*postgres.Storage, error) {
 	password := os.Getenv("POSTGRES_PASSWORD")
 
 	return postgres.NewStorage(host, port, user, password, dbName)
+}
+
+func createMinioImageStorage() (*minio.ImageStorage, error) {
+	host := os.Getenv("MINIO_HOST")
+	port, err := strconv.Atoi(os.Getenv("MINIO_PORT"))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse ENV: %w", err)
+	}
+	user := os.Getenv("MINIO_USER")
+	password := os.Getenv("MINIO_PASSWORD")
+
+	return minio.NewImageStorage(host, port, user, password)
 }
