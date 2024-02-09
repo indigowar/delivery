@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"net/mail"
-	"os"
 
 	"github.com/google/uuid"
 	"github.com/indigowar/delivery/internal/entities"
@@ -41,7 +40,7 @@ type ProfileUpdater interface {
 	LinkEmailToAccount(ctx context.Context, id uuid.UUID, addr *mail.Address) error
 	UpdateFirstName(ctx context.Context, id uuid.UUID, firstName string) error
 	UpdateSurname(ctx context.Context, id uuid.UUID, surname string) error
-	LoadProfileImage(ctx context.Context, id uuid.UUID, image os.File) error
+	LoadProfileImage(ctx context.Context, id uuid.UUID, image []byte) error
 }
 
 // CredentialsValidator - is an interface to the account service, that is used to validate credentials

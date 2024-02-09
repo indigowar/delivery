@@ -30,7 +30,7 @@ func main() {
 	finder := accounts.NewFinder(storage)
 	registrator := accounts.NewRegistrator(storage)
 	credentialsValidator := accounts.NewCredentialsValidator(storage)
-	profileUpdater := accounts.NewProfileUpdater(storage)
+	profileUpdater := accounts.NewProfileUpdater(storage, nil)
 
 	var delivery delivery.Delivery = rest.NewDelivery(80)
 

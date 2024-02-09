@@ -3,14 +3,14 @@ package accounts
 import (
 	"context"
 	"net/mail"
-	"os"
 
 	"github.com/google/uuid"
 )
 
 // profileUpdater - is an implementation of ProfileUpdater interface
 type profileUpdater struct {
-	storage Storage
+	storage      Storage
+	imageStorage ImageStorage
 }
 
 // LinkEmailToAccount implements ProfileUpdater
@@ -32,13 +32,14 @@ func (svc *profileUpdater) UpdateSurname(ctx context.Context, id uuid.UUID, surn
 }
 
 // LoadProfileImage implements ProfileUpdater
-func (svc *profileUpdater) LoadProfileImage(ctx context.Context, id uuid.UUID, image os.File) error {
+func (svc *profileUpdater) LoadProfileImage(ctx context.Context, id uuid.UUID, image []byte) error {
 	// todo: implement
 	panic("unimplemented")
 }
 
-func NewProfileUpdater(storage Storage) ProfileUpdater {
+func NewProfileUpdater(storage Storage, imageStorage ImageStorage) ProfileUpdater {
 	return &profileUpdater{
-		storage: storage,
+		storage:      storage,
+		imageStorage: imageStorage,
 	}
 }
