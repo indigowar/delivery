@@ -1,5 +1,11 @@
 # Delivery
 
+## How to run
+
+```
+make up
+``
+
 ## Task
 
 Task is to develop a complete back-end system for delivery application.
