@@ -11,10 +11,8 @@ import (
 
 type ImageStorage struct {
 	client *minio.Client
-}
 
-func (is *ImageStorage) Get(ctx context.Context, url *url.URL) ([]byte, error) {
-	panic("not implemented")
+	backet string
 }
 
 func (is *ImageStorage) Add(ctx context.Context, image []byte) (*url.URL, error) {
@@ -29,7 +27,6 @@ func NewImageStorage(host string, port int, user string, password string) (*Imag
 
 	return &ImageStorage{
 		client: client,
+		backet: "profile_pictures",
 	}, nil
 }
-
-// todo: implement
