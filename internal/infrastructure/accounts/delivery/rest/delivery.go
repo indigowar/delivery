@@ -30,25 +30,26 @@ func (d *Delivery) Shutdown(ctx context.Context) error {
 func (d *Delivery) AddFinder(finder accounts.Finder) {
 	d.finder = finder
 
-	// todo: setup delivery for Finder
+	d.router.GET("/api/account/id/:id", findByIdHandler(d.finder))
+	d.router.GET("/api/account/phone/:phone", findByPhoneHandler(d.finder))
 }
 
 func (d *Delivery) AddRegistrator(registrator accounts.Registrator) {
 	d.registrator = registrator
 
-	// todo: setup delivery for Registrator
+	d.router.POST("/api/account", registrationHandler(d.registrator))
 }
 
 func (d *Delivery) AddCredentialsValidator(validator accounts.CredentialsValidator) {
 	d.validator = validator
 
-	// todo: setup delivery for CredentialsValidator
+	d.router.POST("/api/credentials", validateCredentialsHandler(d.validator))
 }
 
 func (d *Delivery) AddProfileUpdater(updater accounts.ProfileUpdater) {
 	d.profileUpdater = updater
 
-	// todo: setup delivery for ProfileUpdater
+	d.router.PUT("/api/account", profileUpdateHandler(d.profileUpdater))
 }
 
 func NewDelivery(port int) *Delivery {
