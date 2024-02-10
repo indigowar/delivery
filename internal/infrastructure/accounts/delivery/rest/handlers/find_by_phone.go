@@ -1,4 +1,4 @@
-package rest
+package handlers
 
 import (
 	"github.com/labstack/echo/v4"
@@ -6,10 +6,10 @@ import (
 	"github.com/indigowar/delivery/internal/usecases/accounts"
 )
 
-type profileUpdateRequest struct{}
-type profileUpdateResponse struct{}
+type findByPhoneRequest struct{}
+type findByPhoneResponse struct{}
 
-func profileUpdateHandler(svc accounts.ProfileUpdater) echo.HandlerFunc {
+func FindByPhoneHandler(f accounts.Finder) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		return nil
 	}

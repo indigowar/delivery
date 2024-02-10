@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/indigowar/delivery/internal/usecases/accounts"
 	"github.com/labstack/echo/v4"
+
+	"github.com/indigowar/delivery/internal/infrastructure/accounts/delivery/rest/handlers"
+	"github.com/indigowar/delivery/internal/usecases/accounts"
 )
 
 type Delivery struct {
@@ -30,26 +32,26 @@ func (d *Delivery) Shutdown(ctx context.Context) error {
 func (d *Delivery) AddFinder(finder accounts.Finder) {
 	d.finder = finder
 
-	d.router.GET("/api/account/id/:id", findByIdHandler(d.finder))
-	d.router.GET("/api/account/phone/:phone", findByPhoneHandler(d.finder))
+	d.router.GET("/api/account/id/:id", handlers.FindByIdHandler(d.finder))
+	d.router.GET("/api/account/phone/:phone", handlers.FindByPhoneHandler(d.finder))
 }
 
 func (d *Delivery) AddRegistrator(registrator accounts.Registrator) {
 	d.registrator = registrator
 
-	d.router.POST("/api/account", registrationHandler(d.registrator))
+	d.router.POST("/api/account", handlers.RegistrationHandler(d.registrator))
 }
 
 func (d *Delivery) AddCredentialsValidator(validator accounts.CredentialsValidator) {
 	d.validator = validator
 
-	d.router.POST("/api/credentials", validateCredentialsHandler(d.validator))
+	d.router.POST("/api/credentials", handlers.ValidateCredentialsHandler(d.validator))
 }
 
 func (d *Delivery) AddProfileUpdater(updater accounts.ProfileUpdater) {
 	d.profileUpdater = updater
 
-	d.router.PUT("/api/account", profileUpdateHandler(d.profileUpdater))
+	d.router.PUT("/api/account", handlers.ProfileUpdateHandler(d.profileUpdater))
 }
 
 func NewDelivery(port int) *Delivery {

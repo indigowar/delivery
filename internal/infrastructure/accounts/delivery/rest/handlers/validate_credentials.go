@@ -1,4 +1,4 @@
-package rest
+package handlers
 
 import (
 	"github.com/labstack/echo/v4"
@@ -9,7 +9,7 @@ import (
 type validateCredentialsRequest struct{}
 type validateCredentialsResponse struct{}
 
-func validateCredentialsHandler(v accounts.CredentialsValidator) echo.HandlerFunc {
+func ValidateCredentialsHandler(v accounts.CredentialsValidator) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		return nil
 	}

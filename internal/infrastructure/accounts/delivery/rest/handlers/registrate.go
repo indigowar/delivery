@@ -1,14 +1,14 @@
-package rest
+package handlers
 
 import (
 	"github.com/indigowar/delivery/internal/usecases/accounts"
 	"github.com/labstack/echo/v4"
 )
 
-type findByIdRequest struct{}
-type findByIdResponse struct{}
+type registrationRequest struct{}
+type registrationResponse struct{}
 
-func findByIdHandler(svc accounts.Finder) echo.HandlerFunc {
+func RegistrationHandler(svc accounts.Registrator) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		return nil
 	}
