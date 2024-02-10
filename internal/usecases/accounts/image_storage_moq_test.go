@@ -22,9 +22,6 @@ var _ ImageStorage = &ImageStorageMock{}
 //			AddFunc: func(ctx context.Context, image []byte) (*url.URL, error) {
 //				panic("mock out the Add method")
 //			},
-//			GetFunc: func(ctx context.Context, urlMoqParam *url.URL) ([]byte, error) {
-//				panic("mock out the Get method")
-//			},
 //		}
 //
 //		// use mockedImageStorage in code that requires ImageStorage
@@ -35,9 +32,6 @@ type ImageStorageMock struct {
 	// AddFunc mocks the Add method.
 	AddFunc func(ctx context.Context, image []byte) (*url.URL, error)
 
-	// GetFunc mocks the Get method.
-	GetFunc func(ctx context.Context, urlMoqParam *url.URL) ([]byte, error)
-
 	// calls tracks calls to the methods.
 	calls struct {
 		// Add holds details about calls to the Add method.
@@ -47,16 +41,8 @@ type ImageStorageMock struct {
 			// Image is the image argument value.
 			Image []byte
 		}
-		// Get holds details about calls to the Get method.
-		Get []struct {
-			// Ctx is the ctx argument value.
-			Ctx context.Context
-			// UrlMoqParam is the urlMoqParam argument value.
-			UrlMoqParam *url.URL
-		}
 	}
 	lockAdd sync.RWMutex
-	lockGet sync.RWMutex
 }
 
 // Add calls AddFunc.
@@ -92,41 +78,5 @@ func (mock *ImageStorageMock) AddCalls() []struct {
 	mock.lockAdd.RLock()
 	calls = mock.calls.Add
 	mock.lockAdd.RUnlock()
-	return calls
-}
-
-// Get calls GetFunc.
-func (mock *ImageStorageMock) Get(ctx context.Context, urlMoqParam *url.URL) ([]byte, error) {
-	if mock.GetFunc == nil {
-		panic("ImageStorageMock.GetFunc: method is nil but ImageStorage.Get was just called")
-	}
-	callInfo := struct {
-		Ctx         context.Context
-		UrlMoqParam *url.URL
-	}{
-		Ctx:         ctx,
-		UrlMoqParam: urlMoqParam,
-	}
-	mock.lockGet.Lock()
-	mock.calls.Get = append(mock.calls.Get, callInfo)
-	mock.lockGet.Unlock()
-	return mock.GetFunc(ctx, urlMoqParam)
-}
-
-// GetCalls gets all the calls that were made to Get.
-// Check the length with:
-//
-//	len(mockedImageStorage.GetCalls())
-func (mock *ImageStorageMock) GetCalls() []struct {
-	Ctx         context.Context
-	UrlMoqParam *url.URL
-} {
-	var calls []struct {
-		Ctx         context.Context
-		UrlMoqParam *url.URL
-	}
-	mock.lockGet.RLock()
-	calls = mock.calls.Get
-	mock.lockGet.RUnlock()
 	return calls
 }

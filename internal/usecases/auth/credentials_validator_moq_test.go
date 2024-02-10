@@ -5,6 +5,7 @@ package auth
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"sync"
 )
 
@@ -18,7 +19,7 @@ var _ CredentialsValidator = &CredentialsValidatorMock{}
 //
 //		// make and configure a mocked CredentialsValidator
 //		mockedCredentialsValidator := &CredentialsValidatorMock{
-//			ValidateFunc: func(ctx context.Context, phone string, password string) error {
+//			ValidateFunc: func(ctx context.Context, phone string, password string) (uuid.UUID, error) {
 //				panic("mock out the Validate method")
 //			},
 //		}
@@ -29,7 +30,7 @@ var _ CredentialsValidator = &CredentialsValidatorMock{}
 //	}
 type CredentialsValidatorMock struct {
 	// ValidateFunc mocks the Validate method.
-	ValidateFunc func(ctx context.Context, phone string, password string) error
+	ValidateFunc func(ctx context.Context, phone string, password string) (uuid.UUID, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -47,7 +48,7 @@ type CredentialsValidatorMock struct {
 }
 
 // Validate calls ValidateFunc.
-func (mock *CredentialsValidatorMock) Validate(ctx context.Context, phone string, password string) error {
+func (mock *CredentialsValidatorMock) Validate(ctx context.Context, phone string, password string) (uuid.UUID, error) {
 	if mock.ValidateFunc == nil {
 		panic("CredentialsValidatorMock.ValidateFunc: method is nil but CredentialsValidator.Validate was just called")
 	}

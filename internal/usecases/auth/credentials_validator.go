@@ -1,9 +1,13 @@
 package auth
 
-import "context"
+import (
+	"context"
+
+	"github.com/google/uuid"
+)
 
 //go:generate moq -out credentials_validator_moq_test.go . CredentialsValidator
 
 type CredentialsValidator interface {
-	Validate(ctx context.Context, phone string, password string) error
+	Validate(ctx context.Context, phone string, password string) (uuid.UUID, error)
 }
