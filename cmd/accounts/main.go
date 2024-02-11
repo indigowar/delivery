@@ -14,6 +14,7 @@ import (
 	"github.com/indigowar/delivery/internal/infrastructure/accounts/image_storage/minio"
 	"github.com/indigowar/delivery/internal/infrastructure/accounts/storage/postgres"
 	"github.com/indigowar/delivery/internal/usecases/accounts"
+	"github.com/indigowar/delivery/pkg/jwt"
 )
 
 func main() {
@@ -39,7 +40,9 @@ func main() {
 	credentialsValidator := accounts.NewCredentialsValidator(storage)
 	profileUpdater := accounts.NewProfileUpdater(storage, imageStorage)
 
-	var delivery delivery.Delivery = rest.NewDelivery(80)
+	tokenValidator := jwt.NewValidator([]byte(os.Getenv("TOKEN_SECRET")))
+
+	var delivery delivery.Delivery = rest.NewDelivery(80, tokenValidator)
 
 	delivery.AddFinder(finder)
 	delivery.AddRegistrator(registrator)

@@ -8,7 +8,9 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/indigowar/delivery/internal/infrastructure/accounts/delivery/rest/handlers"
+	"github.com/indigowar/delivery/internal/infrastructure/accounts/delivery/rest/middleware"
 	"github.com/indigowar/delivery/internal/usecases/accounts"
+	"github.com/indigowar/delivery/pkg/jwt"
 )
 
 type Delivery struct {
@@ -16,6 +18,8 @@ type Delivery struct {
 	registrator    accounts.Registrator
 	validator      accounts.CredentialsValidator
 	profileUpdater accounts.ProfileUpdater
+
+	tokenValidator *jwt.Validator
 
 	router *echo.Echo
 	server *http.Server
@@ -34,6 +38,8 @@ func (d *Delivery) AddFinder(finder accounts.Finder) {
 
 	d.router.GET("/api/account/id/:id", handlers.FindByIdHandler(d.finder))
 	d.router.GET("/api/account/phone/:phone", handlers.FindByPhoneHandler(d.finder))
+
+	d.router.GET("/api/account", handlers.GetOwnInfo(d.finder), middleware.WithJWTAuthentication(d.tokenValidator))
 }
 
 func (d *Delivery) AddRegistrator(registrator accounts.Registrator) {
@@ -54,8 +60,10 @@ func (d *Delivery) AddProfileUpdater(updater accounts.ProfileUpdater) {
 	d.router.PUT("/api/account", handlers.ProfileUpdateHandler(d.profileUpdater))
 }
 
-func NewDelivery(port int) *Delivery {
-	delivery := &Delivery{}
+func NewDelivery(port int, validator *jwt.Validator) *Delivery {
+	delivery := &Delivery{
+		tokenValidator: validator,
+	}
 
 	delivery.router = echo.New()
 
