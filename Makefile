@@ -5,5 +5,9 @@ gen:
 test: gen
 	go test ./...
 
+check: test
+	go vet ./...
+	staticcheck ./...
+
 up: gen
 	docker-compose -f build/local-compose.yaml --env-file .env up --build --remove-orphans
