@@ -44,7 +44,7 @@ type Service interface {
 	ExtendSession(ctx context.Context, sessionToken entities.SessionToken) (*TokenResult, error)
 
 	// EndSession - ends currently active user session
-	EndSession(ctx context.Context, sessionToken entities.SessionToken) (*TokenResult, error)
+	EndSession(ctx context.Context, sessionToken entities.SessionToken) error
 
 	// GetAccessToken - creates and returns a new short-live access token for user.
 	GetAccessToken(ctx context.Context, sessionToken entities.SessionToken) (string, error)

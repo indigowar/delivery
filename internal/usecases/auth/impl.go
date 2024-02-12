@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/indigowar/delivery/internal/entities"
@@ -18,23 +19,105 @@ type ServiceImplementation struct {
 }
 
 func (svc *ServiceImplementation) StartSession(ctx context.Context, phone string, password string) (*TokenResult, error) {
-	// todo: implement
-	panic("unimplemented")
+	id, err := svc.validator.Validate(ctx, phone, password)
+	if err != nil {
+		return nil, ErrInvalidCredentials
+	}
+
+	_, err = svc.storage.GetByID(ctx, id)
+	if err == nil {
+		return nil, ErrSessionAlreadyExists
+	}
+
+	if !errors.Is(err, ErrSessionNotFoundInStorage) {
+		return nil, ErrInternalServerError
+	}
+
+	session, err := svc.addSession(ctx, entities.NewSession(id, svc.sessionLifetime))
+	if err != nil {
+		return nil, err
+	}
+
+	return svc.makeTokenResult(session)
 }
 
-func (svc *ServiceImplementation) ExtendSession(ctx context.Context, sessionToken entities.SessionToken) (*TokenResult, error) {
-	// todo: implement
-	panic("unimplemented")
+func (svc *ServiceImplementation) ExtendSession(ctx context.Context, token entities.SessionToken) (*TokenResult, error) {
+	session, err := svc.storage.GetByToken(ctx, token)
+	if err != nil {
+		if errors.Is(err, ErrSessionNotFoundInStorage) {
+			return nil, ErrSessionDoesNotExists
+		}
+
+		return nil, ErrInternalServerError
+	}
+
+	session = entities.NewSession(session.AccountID, svc.sessionLifetime)
+
+	if err := svc.storage.Update(ctx, session); err != nil {
+		if errors.Is(err, ErrSessionDoesNotExists) {
+			return nil, ErrSessionDoesNotExists
+		}
+
+		return nil, ErrInternalServerError
+	}
+
+	return svc.makeTokenResult(session)
 }
 
-func (svc *ServiceImplementation) EndSession(ctx context.Context, sessionToken entities.SessionToken) (*TokenResult, error) {
-	// todo: implement
-	panic("unimplemented")
+func (svc *ServiceImplementation) EndSession(ctx context.Context, sessionToken entities.SessionToken) error {
+	if err := svc.storage.Remove(ctx, string(sessionToken)); err != nil {
+		if errors.Is(err, ErrSessionNotFoundInStorage) {
+			return ErrSessionDoesNotExists
+		}
+
+		return ErrInternalServerError
+	}
+
+	return nil
 }
 
 func (svc *ServiceImplementation) GetAccessToken(ctx context.Context, sessionToken entities.SessionToken) (string, error) {
-	// todo: implement
-	panic("unimplemented")
+	session, err := svc.storage.GetByToken(ctx, sessionToken)
+	if err != nil {
+		if errors.Is(err, ErrSessionNotFoundInStorage) {
+			return "", ErrSessionDoesNotExists
+		}
+
+		return "", ErrInternalServerError
+	}
+
+	return svc.createAccessToken(session)
+}
+
+func (svc *ServiceImplementation) makeTokenResult(session *entities.Session) (*TokenResult, error) {
+	token, _ := svc.createAccessToken(session)
+
+	return &TokenResult{
+		Session:        session,
+		ShortLiveToken: token,
+	}, nil
+}
+
+func (svc *ServiceImplementation) createAccessToken(session *entities.Session) (string, error) {
+	return svc.tokenGenerator.Generate(TokenPayload{
+		AccountID: session.AccountID,
+		Issuer:    "auth_svc",
+		Duration:  svc.accessTokenLifetime,
+		Key:       svc.secret,
+	})
+}
+
+func (svc *ServiceImplementation) addSession(ctx context.Context, session *entities.Session) (*entities.Session, error) {
+	session, err := svc.storage.Add(ctx, session)
+	if err != nil {
+		if errors.Is(err, ErrSessionAlreadyInStorage) {
+			return nil, ErrSessionAlreadyExists
+		}
+
+		return nil, ErrInternalServerError
+	}
+
+	return session, nil
 }
 
 type CreationOption func(i *ServiceImplementation)
