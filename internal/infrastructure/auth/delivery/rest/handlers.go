@@ -40,7 +40,7 @@ func endSessionHandler(svc auth.Service) echo.HandlerFunc {
 			return errorInvalidRequestData(c)
 		}
 
-		err := svc.EndSession(c.Request().Context(), entities.SessionToken(request.token))
+		err := svc.EndSession(c.Request().Context(), entities.SessionToken(request.Token))
 		if err != nil {
 			if errors.Is(err, auth.ErrSessionDoesNotExists) {
 				return errorNotFound(c)

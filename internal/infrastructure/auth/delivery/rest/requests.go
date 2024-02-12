@@ -6,5 +6,5 @@ type startSessionRequest struct {
 }
 
 type sessionTokenRequest struct {
-	token string `json:"token"`
+	Token string `json:"token"`
 }
