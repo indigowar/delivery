@@ -45,5 +45,5 @@ type ProfileUpdater interface {
 
 // CredentialsValidator - is an interface to the account service, that is used to validate credentials
 type CredentialsValidator interface {
-	ValidateCredentials(ctx context.Context, phone string, password string) error
+	ValidateCredentials(ctx context.Context, phone string, password string) (uuid.UUID, error)
 }

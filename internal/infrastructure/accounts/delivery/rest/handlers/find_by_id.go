@@ -6,6 +6,7 @@ import (
 )
 
 type findByIdRequest struct{}
+
 type findByIdResponse struct{}
 
 func FindByIdHandler(svc accounts.Finder) echo.HandlerFunc {

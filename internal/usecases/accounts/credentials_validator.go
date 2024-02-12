@@ -3,6 +3,8 @@ package accounts
 import (
 	"context"
 	"errors"
+
+	"github.com/google/uuid"
 )
 
 type credentialsValidator struct {
@@ -10,20 +12,20 @@ type credentialsValidator struct {
 }
 
 // ValidateCredentials - implements CredentialsValidator
-func (c *credentialsValidator) ValidateCredentials(ctx context.Context, phone string, password string) error {
+func (c *credentialsValidator) ValidateCredentials(ctx context.Context, phone string, password string) (uuid.UUID, error) {
 	account, err := c.storage.GetByPhone(ctx, phone)
 	if err != nil {
 		if errors.Is(err, ErrAccountNotFound) {
-			return ErrInvalidCredentials
+			return uuid.UUID{}, ErrInvalidCredentials
 		}
-		return ErrInternalServerError
+		return uuid.UUID{}, ErrInternalServerError
 	}
 
 	if !account.ValidatePassword(password) {
-		return ErrInvalidCredentials
+		return uuid.UUID{}, ErrInvalidCredentials
 	}
 
-	return nil
+	return account.ID(), nil
 }
 
 func NewCredentialsValidator(storage Storage) CredentialsValidator {
