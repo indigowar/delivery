@@ -60,7 +60,7 @@ func extendSessionHandler(svc auth.Service) echo.HandlerFunc {
 			return errorInvalidRequestData(c)
 		}
 
-		tokens, err := svc.ExtendSession(c.Request().Context(), entities.SessionToken(request.token))
+		tokens, err := svc.ExtendSession(c.Request().Context(), entities.SessionToken(request.Token))
 		if err != nil {
 			if errors.Is(err, auth.ErrSessionDoesNotExists) {
 				return errorNotFound(c)
@@ -83,7 +83,7 @@ func getAccessTokenHandler(svc auth.Service) echo.HandlerFunc {
 			return errorInvalidRequestData(c)
 		}
 
-		access, err := svc.GetAccessToken(c.Request().Context(), entities.SessionToken(request.token))
+		access, err := svc.GetAccessToken(c.Request().Context(), entities.SessionToken(request.Token))
 		if err != nil {
 			if errors.Is(err, auth.ErrSessionDoesNotExists) {
 				return errorNotFound(c)
