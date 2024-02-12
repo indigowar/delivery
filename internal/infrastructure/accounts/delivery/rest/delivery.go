@@ -57,7 +57,8 @@ func (d *Delivery) AddCredentialsValidator(validator accounts.CredentialsValidat
 func (d *Delivery) AddProfileUpdater(updater accounts.ProfileUpdater) {
 	d.profileUpdater = updater
 
-	d.router.PUT("/api/account", handlers.ProfileUpdateHandler(d.profileUpdater))
+	// todo: implement profile updater handlers and add them here.
+	// d.router.PUT("/api/account", handlers.ProfileUpdateHandler(d.profileUpdater), middleware.WithJWTAuthentication(d.tokenValidator))
 }
 
 func NewDelivery(port int, validator *jwt.Validator) *Delivery {
