@@ -8,8 +8,8 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/indigowar/delivery/internal/infrastructure/accounts/delivery/rest/handlers"
-	"github.com/indigowar/delivery/internal/infrastructure/accounts/delivery/rest/middleware"
 	"github.com/indigowar/delivery/internal/usecases/accounts"
+	"github.com/indigowar/delivery/pkg/http/middleware"
 	"github.com/indigowar/delivery/pkg/jwt"
 )
 

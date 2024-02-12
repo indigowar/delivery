@@ -26,6 +26,11 @@ func (d *Delivery) Shutdown(ctx context.Context) error {
 
 func (d *Delivery) AddService(service auth.Service) {
 	d.service = service
+
+	d.router.POST("/session", startSessionHandler(d.service))
+	d.router.DELETE("/session", endSessionHandler(d.service))
+	d.router.PUT("/session", extendSessionHandler(d.service))
+	d.router.POST("/session/refresh", getAccessTokenHandler(d.service))
 }
 
 func NewDelivery(port uint) *Delivery {
