@@ -39,7 +39,7 @@ func (v *Validator) Validate(tokenString string) (uuid.UUID, error) {
 
 	uuidStr, ok := claims["sub"].(string)
 	if !ok {
-		return uuid.UUID{}, errors.New("Subject is missing or invalid")
+		return uuid.UUID{}, errors.New("subject is missing or invalid")
 	}
 
 	parsedUUID, err := uuid.Parse(uuidStr)
