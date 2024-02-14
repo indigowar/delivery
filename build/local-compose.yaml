@@ -15,9 +15,12 @@ services:
       - '--providers.docker.network=proxy-network'
     ports:
       - '80:80'
-      - '8080:8080'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.proxy_dashboard.rule=Host(`proxy_dashboard.localhost`)'
+      - 'traefik.http.services.proxy_dashboard.loadbalancer.server.port=8080'
 
   accounts_service:
     container_name: 'accounts'
