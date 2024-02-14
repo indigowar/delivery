@@ -3,27 +3,20 @@ package handlers
 import (
 	"errors"
 	"net/http"
-	"net/mail"
-	"net/url"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 
+	"github.com/indigowar/delivery/internal/entities"
 	"github.com/indigowar/delivery/internal/usecases/accounts"
 )
 
 type findByIdResponse struct {
-	ID              uuid.UUID     `json:"id"`
-	Phone           string        `json:"phone"`
-	Email           *mail.Address `json:"email,omitempty"`
-	FirstName       *string       `json:"first_name,omitempty"`
-	Surname         *string       `json:"surname,omitempty"`
-	ProfileImageUrl *url.URL      `json:"profile_image,omitempty"`
-}
-
-type findByIDErrorResponse struct {
-	Error string `json:"error"`
-	Msg   string `json:"msg"`
+	ID              string  `json:"id"`
+	Phone           string  `json:"phone"`
+	Email           *string `json:"email,omitempty"`
+	Name            *string `json:"name,omitempty"`
+	ProfileImageUrl *string `json:"profile_image,omitempty"`
 }
 
 func FindByIdHandler(svc accounts.Finder) echo.HandlerFunc {
@@ -32,31 +25,39 @@ func FindByIdHandler(svc accounts.Finder) echo.HandlerFunc {
 
 		id, err := uuid.Parse(paramId)
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, findByIDErrorResponse{
-				Error: "bad request",
-				Msg:   "given id in params is invalid",
-			})
+			return c.NoContent(http.StatusBadRequest)
 		}
 
 		account, err := svc.GetAccount(c.Request().Context(), id)
 		if err != nil {
 			if errors.Is(err, accounts.ErrAccountNotFound) {
-				return c.JSON(http.StatusNotFound, findByIDErrorResponse{
-					Error: "not found",
-					Msg:   "accoun with given id is not found",
-				})
+				return c.NoContent(http.StatusNotFound)
 			}
 
 			return c.NoContent(http.StatusInternalServerError)
 		}
 
-		return c.JSON(http.StatusOK, findByIdResponse{
-			ID:              account.ID(),
-			Phone:           account.Phone(),
-			Email:           account.Email(),
-			FirstName:       account.FirstName(),
-			Surname:         account.Surname(),
-			ProfileImageUrl: account.ProfileImageUrl(),
-		})
+		return c.JSON(http.StatusFound, makeFindByIdResponse(account))
 	}
+}
+
+func makeFindByIdResponse(account *entities.Account) findByIdResponse {
+	response := findByIdResponse{
+		ID:    account.ID().String(),
+		Phone: account.Phone(),
+	}
+
+	if account.HasEmail() {
+		*response.Email = account.Email().String()
+	}
+
+	if account.HasName() {
+		*response.Name = account.Name()
+	}
+
+	if account.HasProfileImageUrl() {
+		*response.ProfileImageUrl = account.ProfileImageUrl().String()
+	}
+
+	return response
 }
