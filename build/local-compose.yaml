@@ -92,6 +92,18 @@ services:
     environment:
       REDIS_PASSWORD: ${AUTH_SESSION_STORAGE_REDIS_PASSWORD}
 
+  menu_service:
+    container_name: 'menu'
+    build:
+      context: ./..
+      dockerfile: ./build/menu.dockerfile
+    networks:
+      - proxy-network
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.menu_service.rule=Host(`menu.localhost`)'
+      - 'traefik.http.services.menu_service.loadbalancer.server.port=80'
+
   pgadmin:
     container_name: 'pg_admin'
     image: elestio/pgadmin:latest
