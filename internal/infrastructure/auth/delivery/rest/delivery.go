@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/indigowar/delivery/internal/usecases/auth"
 	"github.com/labstack/echo/v4"
+
+	"github.com/indigowar/delivery/internal/usecases/auth"
+	"github.com/indigowar/delivery/pkg/http/status"
 )
 
 type Delivery struct {
@@ -36,9 +38,7 @@ func (d *Delivery) AddService(service auth.Service) {
 func NewDelivery(port uint) *Delivery {
 	router := echo.New()
 
-	router.GET("/", func(c echo.Context) error {
-		return c.HTML(http.StatusOK, "AUTH SVC")
-	})
+	router.GET("/status", status.StatusHandler("auth"))
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),

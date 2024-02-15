@@ -1,11 +1,22 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/labstack/echo/v4"
+
+	"github.com/indigowar/delivery/pkg/http/status"
+)
 
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("MENU SVC"))
-	})
+	router := echo.New()
 
-	_ = http.ListenAndServe(":80", nil)
+	router.GET("/status", status.StatusHandler("menu"))
+
+	server := &http.Server{
+		Addr:    ":80",
+		Handler: router,
+	}
+
+	_ = server.ListenAndServe()
 }

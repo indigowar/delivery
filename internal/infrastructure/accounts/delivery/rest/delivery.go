@@ -10,6 +10,7 @@ import (
 	"github.com/indigowar/delivery/internal/infrastructure/accounts/delivery/rest/handlers"
 	"github.com/indigowar/delivery/internal/usecases/accounts"
 	"github.com/indigowar/delivery/pkg/http/middleware"
+	"github.com/indigowar/delivery/pkg/http/status"
 	"github.com/indigowar/delivery/pkg/jwt"
 )
 
@@ -68,9 +69,11 @@ func NewDelivery(port int, validator *jwt.Validator) *Delivery {
 
 	delivery.router = echo.New()
 
-	delivery.router.GET("/", func(c echo.Context) error {
-		return c.HTML(http.StatusOK, "ACCOUNTS SVC")
-	})
+	// delivery.router.GET("/", func(c echo.Context) error {
+	// 	return c.HTML(http.StatusOK, "ACCOUNTS SVC")
+	// })
+
+	delivery.router.GET("/status", status.StatusHandler("accounts"))
 
 	delivery.server = &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
