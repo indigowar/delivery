@@ -99,10 +99,31 @@ services:
       dockerfile: ./build/menu.dockerfile
     networks:
       - proxy-network
+      - menu-network
+    environment:
+      POSTGRES_HOST: 'menu_database'
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: 'menu'
+      POSTGRES_USER: ${MENU_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${MENU_POSTGRES_PASSWORD}
+      
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.menu_service.rule=Host(`menu.localhost`)'
       - 'traefik.http.services.menu_service.loadbalancer.server.port=80'
+
+  menu_database:
+    container_name: 'menu_database'
+    image: postgres:15-alpine
+    networks:
+      - menu-network
+    volumes:
+      - ../.volumes/menu_db:/var/lib/postgresql/data:Z
+    environment:
+      POSTGRES_DB: 'menu'
+      POSTGRES_USER: ${MENU_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${MENU_POSTGRES_PASSWORD}
+
 
   pgadmin:
     container_name: 'pg_admin'
@@ -132,7 +153,7 @@ services:
     container_name: 'image_store'
     image: minio/minio
     volumes:
-      - ../.volumes/image_storage:/data
+      - ../.volumes/image_storage:/data:Z
     networks: 
       - proxy-network
       - image-storage-network
@@ -151,4 +172,5 @@ networks:
     name: proxy-network
   accounts-network:
   auth-network:
+  menu-network:
   image-storage-network:
