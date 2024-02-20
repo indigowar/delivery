@@ -33,7 +33,7 @@ services:
       - image-storage-network
     depends_on:
       - accounts_database
-    restart: on-failure
+    restart: unless-stopped
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.accounts.rule=Host(`accounts.localhost`)'
@@ -128,7 +128,7 @@ services:
   pgadmin:
     container_name: 'pg_admin'
     image: elestio/pgadmin:latest
-    restart: on-failure
+    restart: unless-stopped
     networks:
       - proxy-network
       - accounts-network
@@ -167,6 +167,25 @@ services:
       - 'traefik.http.routers.minio.rule=Host(`minio.localhost`)'
       - 'traefik.http.services.minio.loadbalancer.server.port=9001'
 
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    networks:
+      - kafka-network
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    container_name: 'kafka'
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    networks:
+      - kafka-network
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
 networks:
   proxy-network:
     name: proxy-network
@@ -174,3 +193,4 @@ networks:
   auth-network:
   menu-network:
   image-storage-network:
+  kafka-network:
