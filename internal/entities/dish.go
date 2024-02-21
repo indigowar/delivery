@@ -17,6 +17,24 @@ type Dish struct {
 	About string
 }
 
+func NewDish(name string, price float64, image *url.URL) (*Dish, error) {
+	dish := &Dish{id: uuid.New()}
+
+	if err := dish.SetName(name); err != nil {
+		return nil, err
+	}
+
+	if err := dish.SetPrice(price); err != nil {
+		return nil, err
+	}
+
+	if err := dish.SetImage(image); err != nil {
+		return nil, err
+	}
+
+	return dish, nil
+}
+
 func (d Dish) ID() uuid.UUID {
 	return d.id
 }
