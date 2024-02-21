@@ -24,7 +24,6 @@ var (
 type DishInfo struct {
 	Name        string
 	About       string
-	Image       []byte
 	Ingredients []string
 	Price       float64
 }
@@ -32,8 +31,9 @@ type DishInfo struct {
 // DishService manages entity.Dish, provides CRUD operations on this entity.
 type DishService interface {
 	Get(ctx context.Context, id uuid.UUID) (*entities.Dish, error)
-	Add(ctx context.Context, info *DishInfo) (*entities.Dish, error)
+	Add(ctx context.Context, info *DishInfo, image []byte) (*entities.Dish, error)
 	Update(ctx context.Context, dish uuid.UUID, info *DishInfo) (*entities.Dish, error)
+	UpdateImage(ctx context.Context, dish uuid.UUID, image []byte) (*entities.Dish, error)
 	Delete(ctx context.Context, dish uuid.UUID) (*entities.Dish, error)
 }
 

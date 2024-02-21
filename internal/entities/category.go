@@ -7,8 +7,9 @@ import (
 )
 
 type Category struct {
-	ID     uuid.UUID
-	Name   string
-	Image  *url.URL
-	Dishes []uuid.UUID
+	ID         uuid.UUID
+	Name       string
+	Restaurant uuid.UUID
+	Image      *url.URL
+	Dishes     []uuid.UUID
 }
