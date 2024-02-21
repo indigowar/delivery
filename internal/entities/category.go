@@ -29,7 +29,7 @@ func (c Category) Name() string {
 
 func (c *Category) SetName(value string) error {
 	if len(value) < 3 {
-		return errors.New("category name should contain at least 3 letters.")
+		return errors.New("category name should contain at least 3 letters")
 	}
 
 	c.name = value
