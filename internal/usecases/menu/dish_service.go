@@ -30,7 +30,7 @@ func (svc *DishServiceImpl) Get(ctx context.Context, id uuid.UUID) (*entities.Di
 	panic("not implemented")
 }
 
-func (svc *DishServiceImpl) Add(ctx context.Context, info *DishInfo, image []byte) (*entities.Dish, error) {
+func (svc *DishServiceImpl) Create(ctx context.Context, info *DishInfo, image []byte) (*entities.Dish, error) {
 	// todo: Implement
 	panic("not implemented")
 }

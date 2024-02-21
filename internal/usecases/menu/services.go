@@ -31,7 +31,7 @@ type DishInfo struct {
 // DishService manages entity.Dish, provides CRUD operations on this entity.
 type DishService interface {
 	Get(ctx context.Context, id uuid.UUID) (*entities.Dish, error)
-	Add(ctx context.Context, info *DishInfo, image []byte) (*entities.Dish, error)
+	Create(ctx context.Context, info *DishInfo, image []byte) (*entities.Dish, error)
 	Update(ctx context.Context, dish uuid.UUID, info *DishInfo) (*entities.Dish, error)
 	UpdateImage(ctx context.Context, dish uuid.UUID, image []byte) (*entities.Dish, error)
 	Delete(ctx context.Context, dish uuid.UUID) (*entities.Dish, error)
@@ -55,7 +55,7 @@ type RestaurantService interface {
 type CategoryService interface {
 	Get(ctx context.Context, id uuid.UUID) (*entities.Category, error)
 	GetForRestaurant(ctx context.Context, id uuid.UUID) ([]uuid.UUID, error)
-	Add(ctx context.Context, restaurant uuid.UUID, name string, image []byte) (*entities.Category, error)
+	Create(ctx context.Context, restaurant uuid.UUID, name string, image []byte) (*entities.Category, error)
 	UpdateName(ctx context.Context, category uuid.UUID, name string) (*entities.Category, error)
 	UpdateImage(ctx context.Context, category uuid.UUID, image []byte) (*entities.Category, error)
 	AddDishToCategory(ctx context.Context, category uuid.UUID, dish uuid.UUID) error
