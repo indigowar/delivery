@@ -77,7 +77,7 @@ func (suite *DishServiceTestSuite) TestGetWhenStorageHasUnexpectedError() {
 
 	suite.Nil(dish, "DishService.Get should return nil as entity, when the unexpected error returned from the storage")
 	if suite.NotNil(err, "DishService.Get should return an error") {
-		suite.ErrorIsf(err, ErrDishNotFound, "DishService.Get should return ErrInternalServerError as an error, instead of %s", err)
+		suite.ErrorIsf(err, ErrInternalServerError, "DishService.Get should return ErrInternalServerError as an error, instead of %s", err)
 	}
 }
 
@@ -277,6 +277,10 @@ func (suite *DishServiceTestSuite) setupAddFunctions() {
 func (suite *DishServiceTestSuite) setupGetFunctions() {
 	suite.getNotFound = func(_ context.Context, _ uuid.UUID) (*entities.Dish, error) {
 		return nil, ErrDishIsNotInStorage
+	}
+
+	suite.getUnexpected = func(_ context.Context, _ uuid.UUID) (*entities.Dish, error) {
+		return nil, errors.New("unexpected error")
 	}
 
 	suite.getValid = func(_ context.Context, id uuid.UUID) (*entities.Dish, error) {
