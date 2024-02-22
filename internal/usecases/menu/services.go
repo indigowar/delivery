@@ -21,10 +21,10 @@ var (
 
 // DishInfo contains all writable fields for entity.Dish
 type DishInfo struct {
-	Name        string
-	About       string
-	Ingredients []string
-	Price       float64
+	Name        *string
+	About       *string
+	Ingredients *[]string
+	Price       *float64
 }
 
 // DishService manages entity.Dish, provides CRUD operations on this entity.

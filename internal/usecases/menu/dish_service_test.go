@@ -14,6 +14,10 @@ import (
 	"github.com/indigowar/delivery/internal/entities"
 )
 
+func TestDishService(t *testing.T) {
+	suite.Run(t, new(DishServiceTestSuite))
+}
+
 type DishServiceTestSuite struct {
 	suite.Suite
 
@@ -23,6 +27,21 @@ type DishServiceTestSuite struct {
 	imageStorage *ImageStorageMock
 
 	service *DishServiceImpl
+
+	validUrl *url.URL
+
+	getNotFound   func(_ context.Context, id uuid.UUID) (*entities.Dish, error)
+	getUnexpected func(_ context.Context, id uuid.UUID) (*entities.Dish, error)
+	getValid      func(_ context.Context, id uuid.UUID) (*entities.Dish, error)
+
+	addUnexpected func(_ context.Context, dish *entities.Dish) (*entities.Dish, error)
+	addValid      func(_ context.Context, dish *entities.Dish) (*entities.Dish, error)
+
+	addImageError func(_ context.Context, image []byte) (*url.URL, error)
+	addImageValid func(value *url.URL) func(_ context.Context, image []byte) (*url.URL, error)
+
+	updateNotFound func(_ context.Context, dish *entities.Dish) (*entities.Dish, error)
+	updateValid    func(_ context.Context, dish *entities.Dish) (*entities.Dish, error)
 }
 
 func (suite *DishServiceTestSuite) SetupTest() {
@@ -33,12 +52,15 @@ func (suite *DishServiceTestSuite) SetupTest() {
 	suite.imageStorage = &ImageStorageMock{}
 
 	suite.service = NewDishService(suite.logger, suite.dishStorage, suite.imageStorage)
+
+	suite.setupGetFunctions()
+	suite.setupAddFunctions()
+	suite.setupImageStorageFunctions()
+	suite.setupUpdateFunctions()
 }
 
 func (suite *DishServiceTestSuite) TestGetWhenStorageEmpty() {
-	suite.dishStorage.GetFunc = func(ctx context.Context, id uuid.UUID) (*entities.Dish, error) {
-		return nil, ErrDishIsNotInStorage
-	}
+	suite.dishStorage.GetFunc = suite.getNotFound
 
 	dish, err := suite.service.Get(context.Background(), uuid.New())
 
@@ -49,9 +71,7 @@ func (suite *DishServiceTestSuite) TestGetWhenStorageEmpty() {
 }
 
 func (suite *DishServiceTestSuite) TestGetWhenStorageHasUnexpectedError() {
-	suite.dishStorage.GetFunc = func(ctx context.Context, id uuid.UUID) (*entities.Dish, error) {
-		return nil, errors.New("unexpected error")
-	}
+	suite.dishStorage.GetFunc = suite.getUnexpected
 
 	dish, err := suite.service.Get(context.Background(), uuid.New())
 
@@ -62,22 +82,21 @@ func (suite *DishServiceTestSuite) TestGetWhenStorageHasUnexpectedError() {
 }
 
 func (suite *DishServiceTestSuite) TestCreateWhenImageStorageCantSaveImage() {
-	suite.imageStorage.AddFunc = func(ctx context.Context, image []byte) (*url.URL, error) {
-		return nil, errors.New("failed to save")
-	}
+	suite.imageStorage.AddFunc = suite.addImageError
+	suite.dishStorage.AddFunc = suite.addValid
 
-	suite.dishStorage.AddFunc = func(ctx context.Context, dish *entities.Dish) (*entities.Dish, error) {
-		return dish, nil
+	name := "soup"
+	price := 60.0
+	ingredients := []string{
+		"water",
+		"carrot",
+		"cabbage",
 	}
 
 	createInfo := DishInfo{
-		Name:  "soup",
-		Price: 60.0,
-		Ingredients: []string{
-			"water",
-			"carrot",
-			"cabbage",
-		},
+		Name:        &name,
+		Price:       &price,
+		Ingredients: &ingredients,
 	}
 
 	image := make([]byte, 10)
@@ -91,22 +110,22 @@ func (suite *DishServiceTestSuite) TestCreateWhenImageStorageCantSaveImage() {
 }
 
 func (suite *DishServiceTestSuite) TestCreateWhenDishStorageHasUnexpectedError() {
-	suite.imageStorage.AddFunc = func(ctx context.Context, image []byte) (*url.URL, error) {
-		return url.Parse("http://valid_url.com")
-	}
+	validUrl, _ := url.Parse("https://valid_url.com")
+	suite.imageStorage.AddFunc = suite.addImageValid(validUrl)
+	suite.dishStorage.AddFunc = suite.addUnexpected
 
-	suite.dishStorage.AddFunc = func(ctx context.Context, dish *entities.Dish) (*entities.Dish, error) {
-		return nil, errors.New("unexpected error")
+	name := "soup"
+	price := 60.0
+	ingredients := []string{
+		"water",
+		"carrot",
+		"cabbage",
 	}
 
 	createInfo := DishInfo{
-		Name:  "soup",
-		Price: 60.0,
-		Ingredients: []string{
-			"water",
-			"carrot",
-			"cabbage",
-		},
+		Name:        &name,
+		Price:       &price,
+		Ingredients: &ingredients,
 	}
 
 	image := make([]byte, 10)
@@ -120,24 +139,22 @@ func (suite *DishServiceTestSuite) TestCreateWhenDishStorageHasUnexpectedError()
 }
 
 func (suite *DishServiceTestSuite) TestCreateValid() {
-	validUrl, _ := url.Parse("http://valid_url.com")
+	validUrl, _ := url.Parse("https://valid_url.com")
+	suite.imageStorage.AddFunc = suite.addImageValid(validUrl)
+	suite.dishStorage.AddFunc = suite.addValid
 
-	suite.imageStorage.AddFunc = func(ctx context.Context, image []byte) (*url.URL, error) {
-		return validUrl, nil
-	}
-
-	suite.dishStorage.AddFunc = func(ctx context.Context, dish *entities.Dish) (*entities.Dish, error) {
-		return dish, nil
+	name := "soup"
+	price := 60.0
+	ingredients := []string{
+		"water",
+		"carrot",
+		"cabbage",
 	}
 
 	createInfo := DishInfo{
-		Name:  "soup",
-		Price: 60.0,
-		Ingredients: []string{
-			"water",
-			"carrot",
-			"cabbage",
-		},
+		Name:        &name,
+		Price:       &price,
+		Ingredients: &ingredients,
 	}
 
 	image := make([]byte, 60)
@@ -147,13 +164,146 @@ func (suite *DishServiceTestSuite) TestCreateValid() {
 	suite.Nilf(err, "DishService.Create shouldn't return an error, when input is valid")
 
 	if suite.NotNil(dish, "DishService.Create should not return nil dish, when everything is valid") {
-		suite.Equalf(dish.Name(), createInfo.Name, "DishService.Create expected dish name %s, got %s", createInfo.Name, dish.Name())
-		suite.Equalf(dish.Price(), createInfo.Price, "DishService.Create expected dish price %f. got %f", createInfo.Price, dish.Price())
-		suite.ElementsMatch(dish.Ingredients, createInfo.Ingredients, "DishService.Create ingredients should be the same as in createInfo")
-		suite.Equal(dish.Image(), validUrl, "DishService.Create should have url from the ImageStorage")
+		suite.Equal(dish.Name(), name, "DishService.Create unexpected field value")
+		suite.Equal(dish.Price(), price, "DishService.Create unexpected field value")
+		suite.Equal(dish.Image(), validUrl, "DishService.Create unexpected field value")
+		suite.ElementsMatch(dish.Ingredients, ingredients, "DishService.Create ingredients should be the same as in createInfo")
 	}
 }
 
-func TestDishService(t *testing.T) {
-	suite.Run(t, new(DishServiceTestSuite))
+func (suite *DishServiceTestSuite) TestCreateWithEmptyDishInfo() {
+	validUrl, _ := url.Parse("https://valid_url.com")
+
+	suite.imageStorage.AddFunc = suite.addImageValid(validUrl)
+	suite.dishStorage.AddFunc = suite.addValid
+
+	createInfo := DishInfo{}
+
+	image := make([]byte, 60)
+
+	dish, err := suite.service.Create(context.Background(), &createInfo, image)
+
+	if suite.NotNil(err, "DishService.Create should return an error, when DishInfo is incomplete") {
+		suite.ErrorIs(err, ErrProvidedDataIsInvalid, "DishService.Create should return ErrProvidedDataIsInvalid when DishInfo is incomplete")
+	}
+
+	suite.Nil(dish, "DishService.Create should return nil as entity, if DishInfo is invalid")
+}
+
+func (suite *DishServiceTestSuite) TestCreateWithDishInfoWithoutName() {
+	validUrl, _ := url.Parse("https://valid_url.com")
+
+	suite.imageStorage.AddFunc = suite.addImageValid(validUrl)
+	suite.dishStorage.AddFunc = suite.addValid
+
+	createInfo := DishInfo{}
+
+	image := make([]byte, 60)
+
+	dish, err := suite.service.Create(context.Background(), &createInfo, image)
+
+	if suite.NotNil(err, "DishService.Create should return an error, when DishInfo is incomplete") {
+		suite.ErrorIs(err, ErrProvidedDataIsInvalid, "DishService.Create should return ErrProvidedDataIsInvalid when DishInfo is incomplete")
+	}
+
+	suite.Nil(dish, "DishService.Create should return nil as entity, if DishInfo is invalid")
+}
+
+func (suite *DishServiceTestSuite) TestUpdateNotFoundInStorage() {
+	suite.dishStorage.GetFunc = suite.getNotFound
+	suite.dishStorage.UpdateFunc = suite.updateNotFound
+
+	id := uuid.New()
+	name := "hello, world"
+	updateInfo := DishInfo{
+		Name: &name,
+	}
+
+	dish, err := suite.service.Update(context.Background(), id, &updateInfo)
+
+	suite.Nil(dish, "DishService.Update should return nil as entity, when entity is not found")
+	if suite.NotNil(err, "DishService.Update should return an error, when the entity is not found") {
+		suite.ErrorIs(err, ErrDishNotFound, "DishService.Update should return ErrDishIsNotFound, when the entity is not found")
+	}
+}
+
+func (suite *DishServiceTestSuite) TestUpdateNotFoundOnUpdateInStorage() {
+	suite.dishStorage.GetFunc = func(_ context.Context, id uuid.UUID) (*entities.Dish, error) {
+		validUrl, _ := url.Parse("https://valid_url.com")
+		d, _ := entities.NewDish("soup", 60.0, validUrl)
+		return d, nil
+	}
+
+	suite.dishStorage.UpdateFunc = suite.updateNotFound
+
+	id := uuid.New()
+	name := "hello, world"
+	updateInfo := DishInfo{
+		Name: &name,
+	}
+
+	dish, err := suite.service.Update(context.Background(), id, &updateInfo)
+
+	suite.Nil(dish, "DishService.Update should return nil as entity, when entity is not found")
+	if suite.NotNil(err, "DishService.Update should return an error, when the entity is not found") {
+		suite.ErrorIs(err, ErrDishNotFound, "DishService.Update should return ErrDishIsNotFound, when the entity is not found")
+	}
+}
+
+func (suite *DishServiceTestSuite) TestUpdateWithEmptyInfo() {
+	suite.dishStorage.UpdateFunc = suite.updateValid
+
+	id := uuid.New()
+	updateInfo := DishInfo{}
+
+	dish, err := suite.service.Update(context.Background(), id, &updateInfo)
+
+	suite.Nil(dish, "DishService.Update should return nil as entity, when entity is not found")
+	if suite.NotNil(err, "DishService.Update should return an error, when the entity is not found") {
+		suite.ErrorIs(err, ErrProvidedDataIsInvalid, "DishService.Update should return ErrDishIsNotFound, when the DishInfo is empty")
+	}
+}
+
+func (suite *DishServiceTestSuite) setupAddFunctions() {
+	suite.addValid = func(_ context.Context, dish *entities.Dish) (*entities.Dish, error) {
+		return dish, nil
+	}
+
+	suite.addUnexpected = func(_ context.Context, dish *entities.Dish) (*entities.Dish, error) {
+		return nil, errors.New("unexpected error")
+	}
+}
+
+func (suite *DishServiceTestSuite) setupGetFunctions() {
+	suite.getNotFound = func(_ context.Context, _ uuid.UUID) (*entities.Dish, error) {
+		return nil, ErrDishIsNotInStorage
+	}
+
+	suite.getValid = func(_ context.Context, id uuid.UUID) (*entities.Dish, error) {
+		validUrl, _ := url.Parse("https://valid_url.com")
+		d, _ := entities.NewDish("soup", 60.0, validUrl)
+		return d, nil
+	}
+}
+
+func (suite *DishServiceTestSuite) setupImageStorageFunctions() {
+	suite.addImageError = func(_ context.Context, _ []byte) (*url.URL, error) {
+		return nil, errors.New("failed to save")
+	}
+
+	suite.addImageValid = func(v *url.URL) func(_ context.Context, _ []byte) (*url.URL, error) {
+		return func(_ context.Context, image []byte) (*url.URL, error) {
+			return v, nil
+		}
+	}
+}
+
+func (suite *DishServiceTestSuite) setupUpdateFunctions() {
+	suite.updateNotFound = func(_ context.Context, _ *entities.Dish) (*entities.Dish, error) {
+		return nil, ErrDishIsNotInStorage
+	}
+
+	suite.updateValid = func(_ context.Context, dish *entities.Dish) (*entities.Dish, error) {
+		return dish, nil
+	}
 }

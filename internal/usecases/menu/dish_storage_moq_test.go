@@ -32,6 +32,9 @@ var _ DishStorage = &DishStorageMock{}
 //			RemoveFunc: func(ctx context.Context, id uuid.UUID) (*entities.Dish, error) {
 //				panic("mock out the Remove method")
 //			},
+//			UpdateFunc: func(ctx context.Context, dish *entities.Dish) (*entities.Dish, error) {
+//				panic("mock out the Update method")
+//			},
 //		}
 //
 //		// use mockedDishStorage in code that requires DishStorage
@@ -50,6 +53,9 @@ type DishStorageMock struct {
 
 	// RemoveFunc mocks the Remove method.
 	RemoveFunc func(ctx context.Context, id uuid.UUID) (*entities.Dish, error)
+
+	// UpdateFunc mocks the Update method.
+	UpdateFunc func(ctx context.Context, dish *entities.Dish) (*entities.Dish, error)
 
 	// calls tracks calls to the methods.
 	calls struct {
@@ -81,11 +87,19 @@ type DishStorageMock struct {
 			// ID is the id argument value.
 			ID uuid.UUID
 		}
+		// Update holds details about calls to the Update method.
+		Update []struct {
+			// Ctx is the ctx argument value.
+			Ctx context.Context
+			// Dish is the dish argument value.
+			Dish *entities.Dish
+		}
 	}
 	lockAdd    sync.RWMutex
 	lockGet    sync.RWMutex
 	lockGetSet sync.RWMutex
 	lockRemove sync.RWMutex
+	lockUpdate sync.RWMutex
 }
 
 // Add calls AddFunc.
@@ -229,5 +243,41 @@ func (mock *DishStorageMock) RemoveCalls() []struct {
 	mock.lockRemove.RLock()
 	calls = mock.calls.Remove
 	mock.lockRemove.RUnlock()
+	return calls
+}
+
+// Update calls UpdateFunc.
+func (mock *DishStorageMock) Update(ctx context.Context, dish *entities.Dish) (*entities.Dish, error) {
+	if mock.UpdateFunc == nil {
+		panic("DishStorageMock.UpdateFunc: method is nil but DishStorage.Update was just called")
+	}
+	callInfo := struct {
+		Ctx  context.Context
+		Dish *entities.Dish
+	}{
+		Ctx:  ctx,
+		Dish: dish,
+	}
+	mock.lockUpdate.Lock()
+	mock.calls.Update = append(mock.calls.Update, callInfo)
+	mock.lockUpdate.Unlock()
+	return mock.UpdateFunc(ctx, dish)
+}
+
+// UpdateCalls gets all the calls that were made to Update.
+// Check the length with:
+//
+//	len(mockedDishStorage.UpdateCalls())
+func (mock *DishStorageMock) UpdateCalls() []struct {
+	Ctx  context.Context
+	Dish *entities.Dish
+} {
+	var calls []struct {
+		Ctx  context.Context
+		Dish *entities.Dish
+	}
+	mock.lockUpdate.RLock()
+	calls = mock.calls.Update
+	mock.lockUpdate.RUnlock()
 	return calls
 }

@@ -22,4 +22,5 @@ type DishStorage interface {
 	GetSet(ctx context.Context, ids uuid.UUIDs) ([]*entities.Dish, error)
 	Add(ctx context.Context, dish *entities.Dish) (*entities.Dish, error)
 	Remove(ctx context.Context, id uuid.UUID) (*entities.Dish, error)
+	Update(ctx context.Context, dish *entities.Dish) (*entities.Dish, error)
 }
