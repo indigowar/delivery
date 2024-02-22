@@ -31,21 +31,11 @@ func (svc *DishServiceImpl) Get(ctx context.Context, id uuid.UUID) (*entities.Di
 	dish, err := svc.dishStorage.Get(ctx, id)
 	if err != nil {
 		if errors.Is(err, ErrDishIsNotInStorage) {
-			svc.logger.Info(
-				"FAILED RETRIEVE",
-				"entity", id.String(),
-				"error", err.Error(),
-			)
-
+			svc.logRetrieveFailed(slog.LevelInfo, id, err.Error())
 			return nil, ErrDishNotFound
 		}
 
-		svc.logger.Warn(
-			"FAILED RETRIEVE",
-			"entity", id.String(),
-			"error", err.Error(),
-		)
-
+		svc.logRetrieveFailed(slog.LevelWarn, id, err.Error())
 		return nil, ErrInternalServerError
 	}
 
@@ -134,5 +124,16 @@ func (svc *DishServiceImpl) logDishCreateFailed(err string, more string) {
 		"DISH_CREATE_FAILED",
 		"error", err,
 		"more", more,
+	)
+}
+
+func (svc *DishServiceImpl) logRetrieveFailed(level slog.Level, entity uuid.UUID, err string) {
+	svc.logger.Log(
+		context.Background(),
+		level,
+		"RETRIEVE_FAILED",
+
+		"entity", entity.ID(),
+		"error", err,
 	)
 }
