@@ -29,8 +29,8 @@ func NewDish(name string, price float64, image *url.URL) (*Dish, error) {
 		return nil, err
 	}
 
-	if err := dish.SetImage(image); err != nil {
-		return nil, err
+	if image != nil {
+		dish.SetImage(image)
 	}
 
 	return dish, nil
