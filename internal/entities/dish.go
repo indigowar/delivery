@@ -14,11 +14,12 @@ type Dish struct {
 	price float64
 	image *url.URL
 
-	About string
+	About       string
+	Ingredients []string
 }
 
 func NewDish(name string, price float64, image *url.URL) (*Dish, error) {
-	dish := &Dish{id: uuid.New()}
+	dish := &Dish{id: uuid.New(), Ingredients: make([]string, 0)}
 
 	if err := dish.SetName(name); err != nil {
 		return nil, err
