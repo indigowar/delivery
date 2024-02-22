@@ -27,25 +27,25 @@ func NewDishService(logger *slog.Logger, storage DishStorage, imgStorage ImageSt
 
 func (svc *DishServiceImpl) Get(ctx context.Context, id uuid.UUID) (*entities.Dish, error) {
 	// todo: Implement
-	panic("not implemented")
+	return nil, nil
 }
 
 func (svc *DishServiceImpl) Create(ctx context.Context, info *DishInfo, image []byte) (*entities.Dish, error) {
 	// todo: Implement
-	panic("not implemented")
+	return nil, nil
 }
 
 func (svc *DishServiceImpl) Update(ctx context.Context, dish uuid.UUID, info *DishInfo) (*entities.Dish, error) {
 	// todo: Implement
-	panic("not implemented")
+	return nil, nil
 }
 
 func (svc *DishServiceImpl) UpdateImage(ctx context.Context, dish uuid.UUID, image []byte) (*entities.Dish, error) {
 	// todo: Implement
-	panic("not implemented")
+	return nil, nil
 }
 
 func (svc *DishServiceImpl) Delete(ctx context.Context, dish uuid.UUID) (*entities.Dish, error) {
 	// todo: Implement
-	panic("not implemented")
+	return nil, nil
 }
