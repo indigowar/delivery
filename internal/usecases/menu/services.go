@@ -12,7 +12,6 @@ import (
 var (
 	ErrDishNotFound       = errors.New("dish is not found")
 	ErrRestaurantNotFound = errors.New("restaurant is not found")
-	ErrDishAlreadyExists  = errors.New("dish already exists")
 	ErrInvalidManager     = errors.New("invalid manager")
 	ErrInvalidOrderSet    = errors.New("invalid order set was provided")
 
