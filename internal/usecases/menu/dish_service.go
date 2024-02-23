@@ -85,9 +85,36 @@ func (svc *DishServiceImpl) Update(ctx context.Context, dish uuid.UUID, info *Di
 	return nil, nil
 }
 
-func (svc *DishServiceImpl) UpdateImage(ctx context.Context, dish uuid.UUID, image []byte) (*entities.Dish, error) {
-	// todo: Implement
-	return nil, nil
+func (svc *DishServiceImpl) UpdateImage(ctx context.Context, dishId uuid.UUID, image []byte) (*entities.Dish, error) {
+	dish, err := svc.dishStorage.Get(ctx, dishId)
+	if err != nil {
+		svc.logUpdateImageFailed(dishId, "dish not found", err.Error())
+
+		if errors.Is(err, ErrDishIsNotInStorage) {
+			return nil, ErrDishNotFound
+		}
+
+		return nil, ErrInternalServerError
+	}
+
+	imageUrl, err := svc.uploadImage(ctx, image)
+	if err != nil {
+		svc.logUpdateImageFailed(dishId, "image failed to upload", err.Error())
+		return nil, err
+	}
+
+	if err := dish.SetImage(imageUrl); err != nil {
+		svc.logUpdateImageFailed(dishId, "image failed to update", "image url is invalid after uploading")
+		return nil, err
+	}
+
+	dish, err = svc.dishStorage.Update(ctx, dish)
+	if err != nil {
+		svc.logUpdateImageFailed(dishId, "failed to update", err.Error())
+		return nil, err
+	}
+
+	return dish, nil
 }
 
 func (svc *DishServiceImpl) Delete(ctx context.Context, dishId uuid.UUID) (*entities.Dish, error) {
@@ -153,5 +180,14 @@ func (svc *DishServiceImpl) logDeleteFailed(entity uuid.UUID, err string) {
 		"DISH_DELETE_FAILED",
 		"entity", entity.String(),
 		"error", err,
+	)
+}
+
+func (svc *DishServiceImpl) logUpdateImageFailed(entity uuid.UUID, err string, more string) {
+	svc.logger.Info(
+		"UPDATE_IMAGE_FAILED",
+		"entity", entity.String(),
+		"error", err,
+		"more", more,
 	)
 }
