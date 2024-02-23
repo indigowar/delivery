@@ -28,8 +28,6 @@ type DishServiceTestSuite struct {
 
 	service *DishServiceImpl
 
-	validUrl *url.URL
-
 	getNotFound   func(_ context.Context, id uuid.UUID) (*entities.Dish, error)
 	getUnexpected func(_ context.Context, id uuid.UUID) (*entities.Dish, error)
 	getValid      func(_ context.Context, id uuid.UUID) (*entities.Dish, error)
