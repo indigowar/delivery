@@ -226,11 +226,7 @@ func (suite *DishServiceTestSuite) TestUpdateNotFoundInStorage() {
 }
 
 func (suite *DishServiceTestSuite) TestUpdateNotFoundOnUpdateInStorage() {
-	suite.dishStorage.GetFunc = func(_ context.Context, id uuid.UUID) (*entities.Dish, error) {
-		validUrl, _ := url.Parse("https://valid_url.com")
-		d, _ := entities.NewDish("soup", 60.0, validUrl)
-		return d, nil
-	}
+	suite.dishStorage.GetFunc = suite.getValid
 
 	suite.dishStorage.UpdateFunc = suite.updateNotFound
 
@@ -250,6 +246,7 @@ func (suite *DishServiceTestSuite) TestUpdateNotFoundOnUpdateInStorage() {
 
 func (suite *DishServiceTestSuite) TestUpdateWithEmptyInfo() {
 	suite.dishStorage.UpdateFunc = suite.updateValid
+	suite.dishStorage.GetFunc = suite.getValid
 
 	id := uuid.New()
 	updateInfo := DishInfo{}

@@ -80,9 +80,31 @@ func (svc *DishServiceImpl) Create(ctx context.Context, info *DishInfo, image []
 	return dish, nil
 }
 
-func (svc *DishServiceImpl) Update(ctx context.Context, dish uuid.UUID, info *DishInfo) (*entities.Dish, error) {
-	// todo: Implement
-	return nil, nil
+func (svc *DishServiceImpl) Update(ctx context.Context, dishId uuid.UUID, info *DishInfo) (*entities.Dish, error) {
+	dish, err := svc.dishStorage.Get(ctx, dishId)
+	if err != nil {
+		if errors.Is(err, ErrDishIsNotInStorage) {
+			return nil, ErrDishNotFound
+		}
+
+		return nil, ErrInternalServerError
+	}
+
+	dish, err = svc.update(dish, info)
+	if err != nil {
+		return nil, err
+	}
+
+	dish, err = svc.dishStorage.Update(ctx, dish)
+	if err != nil {
+		if errors.Is(err, ErrDishIsNotInStorage) {
+			return nil, ErrDishNotFound
+		}
+
+		return nil, ErrInternalServerError
+	}
+
+	return dish, nil
 }
 
 func (svc *DishServiceImpl) UpdateImage(ctx context.Context, dishId uuid.UUID, image []byte) (*entities.Dish, error) {
@@ -190,4 +212,57 @@ func (svc *DishServiceImpl) logUpdateImageFailed(entity uuid.UUID, err string, m
 		"error", err,
 		"more", more,
 	)
+}
+
+func (svc *DishServiceImpl) update(dish *entities.Dish, info *DishInfo) (*entities.Dish, error) {
+	updatedFields := 0
+	var err error = nil
+
+	if info.Name != nil {
+		defer func(previous string) {
+			if err != nil {
+				_ = dish.SetName(previous)
+			}
+		}(dish.Name())
+
+		updatedFields++
+		if err = dish.SetName(*info.Name); err != nil {
+			return nil, ErrProvidedDataIsInvalid
+		}
+	}
+
+	if info.About != nil {
+		defer func(previous string) {
+			if err != nil {
+				dish.About = previous
+			}
+		}(dish.About)
+
+		updatedFields++
+		dish.About = *info.About
+	}
+
+	if info.Price != nil {
+		defer func(previous float64) {
+			if err != nil {
+				_ = dish.SetPrice(previous)
+			}
+		}(dish.Price())
+
+		updatedFields++
+		if err = dish.SetPrice(*info.Price); err != nil {
+			return nil, err
+		}
+	}
+
+	if info.Ingredients != nil {
+		dish.Ingredients = *info.Ingredients
+		updatedFields++
+	}
+
+	if updatedFields == 0 {
+		return nil, ErrProvidedDataIsInvalid
+	}
+
+	return dish, nil
 }
