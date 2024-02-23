@@ -90,9 +90,19 @@ func (svc *DishServiceImpl) UpdateImage(ctx context.Context, dish uuid.UUID, ima
 	return nil, nil
 }
 
-func (svc *DishServiceImpl) Delete(ctx context.Context, dish uuid.UUID) (*entities.Dish, error) {
-	// todo: Implement
-	return nil, nil
+func (svc *DishServiceImpl) Delete(ctx context.Context, dishId uuid.UUID) (*entities.Dish, error) {
+	dish, err := svc.dishStorage.Remove(ctx, dishId)
+	if err != nil {
+		if errors.Is(err, ErrDishIsNotInStorage) {
+			svc.logDeleteFailed(dishId, err.Error())
+			return nil, ErrDishNotFound
+		}
+
+		svc.logDeleteFailed(dishId, err.Error())
+		return nil, ErrInternalServerError
+	}
+
+	return dish, nil
 }
 
 func (svc *DishServiceImpl) validateCreateInfo(info *DishInfo, image []byte) error {
@@ -134,6 +144,14 @@ func (svc *DishServiceImpl) logRetrieveFailed(level slog.Level, entity uuid.UUID
 		"RETRIEVE_FAILED",
 
 		"entity", entity.ID(),
+		"error", err,
+	)
+}
+
+func (svc *DishServiceImpl) logDeleteFailed(entity uuid.UUID, err string) {
+	svc.logger.Info(
+		"DISH_DELETE_FAILED",
+		"entity", entity.String(),
 		"error", err,
 	)
 }
